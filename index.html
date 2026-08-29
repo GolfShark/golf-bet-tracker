@@ -2,538 +2,592 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Golf Bets Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover">
+<title>Golf Bets Tracker — v2</title>
 <meta name="theme-color" content="#111827">
 <style>
+/* Mobile-first styling for iPhone, responsive up to 700px */
+:root{--bg:#f3f4f6;--fg:#111827;--muted:#6b7280;--card:#fff;--accent:#111827;--success:#15803d;--danger:#b91c1c}
 *{box-sizing:border-box}
-body{margin:0;background:#f3f4f6;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{max-width:700px;margin:auto;padding:18px 14px 40px}
-h1{margin:0;font-size:28px}.sub{color:#6b7280;font-size:13px;margin-bottom:18px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
-button,input,select{font:inherit}
-button{min-height:44px;border-radius:11px;border:1px solid #ddd;padding:9px 13px;font-weight:700}
-.tab{background:white}.tab.active,.primary{background:#111827;color:white}
-.card{background:white;border:1px solid #e5e7eb;border-radius:15px;padding:15px;margin-bottom:10px}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.label{font-size:12px;color:#6b7280}.value{font-size:23px;font-weight:800;margin-top:4px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-label{display:block;font-size:12px;font-weight:700;color:#6b7280;margin-bottom:5px}
-input,select{width:100%;height:44px;border:1px solid #ddd;border-radius:10px;padding:0 10px;background:white}
-.full{width:100%;margin-top:12px}
-.hidden{display:none!important}
-.green{color:#15803d}.red{color:#b91c1c}
-.bet{background:white;border:1px solid #e5e7eb;border-radius:15px;padding:15px;margin-bottom:9px}
-.betrow{display:flex;justify-content:space-between;gap:12px}
-.player{font-weight:800}.meta{font-size:12px;color:#6b7280;margin-top:3px}
-.actions{display:flex;gap:7px;margin-top:11px}.actions button{flex:1;background:white}
-.empty{text-align:center;color:#6b7280;padding:30px;border:1px dashed #ddd;border-radius:14px}
-.panel{background:white;border:1px solid #e5e7eb;border-radius:15px;padding:15px;margin-bottom:10px}
-.chart{width:100%;height:170px}
-svg{width:100%;height:100%}
-@media(max-width:520px){.grid{grid-template-columns:1fr}}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:820px;margin:0 auto;padding:16px}
+header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.title{display:flex;flex-direction:column}
+.title h1{margin:0;font-size:20px}
+.title .sub{font-size:12px;color:var(--muted)}
+.controls{display:flex;gap:8px;align-items:center}
+button,input,select,textarea{font:inherit}
+button{min-height:40px;border-radius:10px;border:1px solid #ddd;padding:8px 12px;font-weight:700;background:var(--card)}
+.primary{background:var(--accent);color:white}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{flex:1;text-align:center;border-radius:10px}
+.tab.active{background:var(--accent);color:white}
+.card{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
+.label{font-size:12px;color:var(--muted)}
+.value{font-size:20px;font-weight:800;margin-top:4px}
+.small{font-size:13px}
+.meta{font-size:12px;color:var(--muted);margin-top:6px}
+.form-row{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px}
+input,select,textarea{width:100%;height:42px;border:1px solid #ddd;border-radius:8px;padding:6px 8px;background:var(--card)}
+textarea{height:80px;resize:vertical;padding:8px}
+.actions{display:flex;gap:8px}
+.bet{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:10px}
+.betrow{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.player{font-weight:800}
+.empty{text-align:center;color:var(--muted);padding:20px;border:1px dashed #ddd;border-radius:12px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
+.green{color:var(--success)}.red{color:var(--danger)}
+.search{display:flex;gap:8px;margin-bottom:10px}
+@media(max-width:420px){.title h1{font-size:18px}.value{font-size:18px}}
 </style>
 </head>
-
 <body>
 <main>
+<header>
+  <div class="title">
+    <h1>⛳ Golf Bets — v2</h1>
+    <div class="sub">Personal golf betting tracker — mobile-first</div>
+  </div>
+  <div class="controls">
+    <button id="exportBtn">Export</button>
+    <button id="importBtn">Restore</button>
+    <button id="settingsBtn">Settings</button>
+  </div>
+</header>
 
-<h1>⛳ Golf Bets</h1>
-<div class="sub">Your personal golf betting tracker</div>
-
-<div class="tabs">
-<button class="tab active" data-page="dashboard">Dashboard</button>
-<button class="tab" data-page="add">Add Bet</button>
-<button class="tab" data-page="history">History</button>
+<div class="tabs" role="tablist">
+  <button class="tab active" data-page="dashboard">Dashboard</button>
+  <button class="tab" data-page="add">Add Bet</button>
+  <button class="tab" data-page="history">History</button>
 </div>
 
 <section id="dashboard">
-<div class="stats">
-<div class="card"><div class="label">Bankroll</div><div class="value" id="bankroll">£100.00</div></div>
-<div class="card"><div class="label">Profit / Loss</div><div class="value" id="profit">£0.00</div></div>
-<div class="card"><div class="label">ROI</div><div class="value" id="roi">0.0%</div></div>
-<div class="card"><div class="label">Strike Rate</div><div class="value" id="strike">0.0%</div></div>
-</div>
+  <div class="grid">
+    <div class="card"><div class="label">Bankroll</div><div class="value" id="bankroll">£0.00</div><div class="meta" id="bankrollMeta"></div></div>
+    <div class="card"><div class="label">Profit / Loss</div><div class="value" id="profit">£0.00</div><div class="meta" id="profitMeta"></div></div>
+    <div class="card"><div class="label">ROI</div><div class="value" id="roi">0.0%</div><div class="meta">Profit / Total Staked</div></div>
+    <div class="card"><div class="label">Strike Rate</div><div class="value" id="strike">0.0%</div><div class="meta">Winning bets of settled</div></div>
+  </div>
 
-<div class="panel">
-<b>Profit Curve</b>
-<div class="chart"><svg id="chart" viewBox="0 0 600 170"></svg></div>
-</div>
+  <div class="grid">
+    <div class="card"><div class="label">Total Staked</div><div class="value" id="staked">£0.00</div></div>
+    <div class="card"><div class="label">Winning Bets</div><div class="value" id="wins">0</div></div>
+  </div>
 
-<div class="stats">
-<div class="card"><div class="label">Total Staked</div><div class="value" id="staked">£0.00</div></div>
-<div class="card"><div class="label">Winning Bets</div><div class="value" id="wins">0</div></div>
-</div>
+  <div class="card">
+    <div class="label">Profit Curve</div>
+    <div style="height:160px;margin-top:8px"><svg id="chart" viewBox="0 0 600 170"></svg></div>
+  </div>
+
+  <div class="grid">
+    <div class="card" id="monthlyPLCard"><div class="label">Monthly P/L</div><div id="monthlyPL" class="meta small"></div></div>
+    <div class="card" id="breakdownCard"><div class="label">P/L by Tournament / Player / Market</div><div id="breakdown" class="meta small"></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="label">Current Streak</div><div class="value" id="streakVal">—</div><div class="meta" id="streakMeta"></div></div>
+    <div class="card"><div class="label">Longest Streaks</div><div class="meta" id="longestStreaks"></div></div>
+  </div>
 </section>
 
 <section id="add" class="hidden">
-<div class="panel">
-<h3 id="formTitle">Add Golf Bet</h3>
+  <div class="card">
+    <h3 id="formTitle">Add Golf Bet</h3>
+    <form id="form">
+      <input id="editId" type="hidden">
+      <div class="form-row">
+        <label class="label">Date</label>
+        <input id="date" type="date" required>
+      </div>
+      <div class="form-row">
+        <label class="label">Tournament</label>
+        <input id="tournament" placeholder="BMW Championship" required>
+      </div>
+      <div class="form-row">
+        <label class="label">Player / Pick</label>
+        <input id="player" placeholder="Rory McIlroy" required>
+      </div>
+      <div class="grid">
+        <div>
+          <label class="label">Market</label>
+          <select id="market">
+            <option>Outright</option>
+            <option>Top 5</option>
+            <option>Top 10</option>
+            <option>Top 20</option>
+            <option>Match-up</option>
+            <option>Round / Prop</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Bet Type</label>
+          <select id="type">
+            <option value="single">Single</option>
+            <option value="ew">Each Way</option>
+          </select>
+        </div>
+      </div>
 
-<form id="form">
+      <div class="grid">
+        <div>
+          <label class="label">Odds</label>
+          <input id="odds" type="number" min="1.01" step="0.01" placeholder="10.00" required>
+        </div>
+        <div>
+          <label class="label">Stake Per Way (£)</label>
+          <input id="stake" type="number" min="0.01" step="0.01" placeholder="5" required>
+        </div>
+      </div>
 
-<input id="editId" type="hidden">
+      <div id="singleResult" class="form-row">
+        <label class="label">Result</label>
+        <select id="result">
+          <option>Pending</option>
+          <option>Won</option>
+          <option>Lost</option>
+          <option>Void</option>
+        </select>
+      </div>
 
-<div class="grid">
+      <div id="ewFields" class="hidden" style="margin-top:8px">
+        <div class="grid">
+          <div>
+            <label class="label">Place Terms (fraction)</label>
+            <select id="fraction">
+              <option value="0.2">1/5</option>
+              <option value="0.25">1/4</option>
+              <option value="0.1">1/10</option>
+              <option value="0.333">1/3</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Places Paid</label>
+            <select id="places">
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+              <option>7</option>
+              <option>8</option>
+              <option>10</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">EW Result</label>
+            <select id="ewResult">
+              <option>Pending</option>
+              <option>Won</option>
+              <option>Placed</option>
+              <option>Lost</option>
+              <option>Void</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-<div>
-<label>Date</label>
-<input id="date" type="date" required>
-</div>
+      <div class="form-row" style="margin-top:8px">
+        <label class="label">Notes</label>
+        <textarea id="notes" placeholder="Notes about this bet (optional)"></textarea>
+      </div>
 
-<div>
-<label>Tournament</label>
-<input id="tournament" placeholder="BMW Championship" required>
-</div>
-
-<div>
-<label>Player / Pick</label>
-<input id="player" placeholder="Rory McIlroy" required>
-</div>
-
-<div>
-<label>Market</label>
-<select id="market">
-<option>Outright</option>
-<option>Top 5</option>
-<option>Top 10</option>
-<option>Top 20</option>
-<option>Match-up</option>
-<option>Round / Prop</option>
-<option>Other</option>
-</select>
-</div>
-
-<div>
-<label>Bet Type</label>
-<select id="type">
-<option value="single">Single</option>
-<option value="ew">Each Way</option>
-</select>
-</div>
-
-<div>
-<label>Odds</label>
-<input id="odds" type="number" min="1.01" step="0.01" placeholder="10.00" required>
-</div>
-
-<div>
-<label>Stake Per Way (£)</label>
-<input id="stake" type="number" min="0.01" step="0.01" placeholder="5" required>
-</div>
-
-<div id="singleResult">
-<label>Result</label>
-<select id="result">
-<option>Pending</option>
-<option>Won</option>
-<option>Lost</option>
-<option>Void</option>
-</select>
-</div>
-
-</div>
-
-<div id="ewFields" class="grid hidden" style="margin-top:11px">
-
-<div>
-<label>Place Terms</label>
-<select id="fraction">
-<option value="0.2">1/5</option>
-<option value="0.25">1/4</option>
-<option value="0.1">1/10</option>
-</select>
-</div>
-
-<div>
-<label>Places Paid</label>
-<select id="places">
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>10</option>
-</select>
-</div>
-
-<div>
-<label>EW Result</label>
-<select id="ewResult">
-<option>Pending</option>
-<option>Won</option>
-<option>Placed</option>
-<option>Lost</option>
-<option>Void</option>
-</select>
-</div>
-
-</div>
-
-<div id="preview" class="meta"></div>
-
-<button class="primary full" type="submit" id="save">Add Bet</button>
-<button class="full" type="button" id="cancel" style="display:none">Cancel</button>
-
-</form>
-</div>
+      <div class="actions" style="margin-top:8px">
+        <button class="primary full" type="submit" id="save">Add Bet</button>
+        <button class="full" type="button" id="cancel" style="display:none">Cancel</button>
+      </div>
+    </form>
+  </div>
 </section>
 
 <section id="history" class="hidden">
+  <div class="card">
+    <div class="search">
+      <input id="search" placeholder="Search by player, tournament, market, notes" aria-label="Search bets">
+      <select id="filterResult"><option>All</option><option>Pending</option><option>Won</option><option>Placed</option><option>Lost</option><option>Void</option></select>
+      <select id="filterMarket"><option>All</option><option>Outright</option><option>Top 5</option><option>Top 10</option><option>Top 20</option><option>Match-up</option><option>Round / Prop</option><option>Other</option></select>
+    </div>
+    <div class="meta small">Use search and filters to refine history. Tap a bet to edit.</div>
+  </div>
 
-<div class="panel">
-<div class="grid">
-<div>
-<label>Result</label>
-<select id="filterResult">
-<option>All</option>
-<option>Pending</option>
-<option>Won</option>
-<option>Placed</option>
-<option>Lost</option>
-<option>Void</option>
-</select>
-</div>
-
-<div>
-<label>Market</label>
-<select id="filterMarket">
-<option>All</option>
-<option>Outright</option>
-<option>Top 5</option>
-<option>Top 10</option>
-<option>Top 20</option>
-<option>Match-up</option>
-<option>Round / Prop</option>
-<option>Other</option>
-</select>
-</div>
-</div>
-</div>
-
-<div id="list"></div>
-<div id="empty" class="empty">No bets yet.</div>
-
+  <div id="list"></div>
+  <div id="empty" class="empty">No bets match your filters.</div>
 </section>
 
+<!-- Settings / Transactions / Import modal (simple) -->
+<div id="modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end">
+  <div style="background:white;border-radius:12px;padding:12px;width:100%;max-width:820px;">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <b id="modalTitle">Settings</b>
+      <button id="modalClose">Close</button>
+    </div>
+    <div id="modalBody" style="margin-top:8px"></div>
+  </div>
+</div>
+
 <script>
+// Keep the exact localStorage key for bets
+let STORAGE_KEY = "golfBets";
+let META_KEY = "golfBetsMeta"; // settings and transactions
 
-let bets=JSON.parse(localStorage.getItem("golfBets")||"[]");
+let bets = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let meta = JSON.parse(localStorage.getItem(META_KEY) || "{}");
 
-const $=id=>document.getElementById(id);
+// Ensure meta defaults
+meta.startingBankroll = Number(meta.startingBankroll) || 100;
+meta.transactions = meta.transactions || []; // {id,date,amount,type,desc}
 
+// Helpers
+const $ = id => document.getElementById(id);
 function saveData(){
-localStorage.setItem("golfBets",JSON.stringify(bets));
+  // Save bets under same key so existing users remain compatible
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(bets));
+  localStorage.setItem(META_KEY, JSON.stringify(meta));
 }
-
 function money(n){
-return "£"+Math.abs(n).toFixed(2);
+  if (!Number.isFinite(n)) n = 0;
+  return "£"+Math.abs(n).toFixed(2);
 }
 
 function pnl(b){
+  // Backwards-compatible handling: missing fields
+  if(!b || !b.result) return 0;
+  if(b.result==="Pending"||b.result==="Void") return 0;
 
-if(b.result==="Pending"||b.result==="Void") return 0;
+  // ensure numeric values
+  let odds = Number(b.odds)||0;
+  let stake = Number(b.stake)||0;
+  let fraction = Number(b.fraction)||0.2;
 
-if(b.type==="single"){
-return b.result==="Won"
-?b.stake*(b.odds-1)
-:-b.stake;
-}
+  if(b.type==="single"){
+    return b.result==="Won" ? stake*(odds-1) : -stake;
+  }
 
-let placeOdds=1+(b.odds-1)*b.fraction;
+  // Each-way
+  let placeOdds = 1 + (odds-1)*fraction;
 
-if(b.result==="Won"){
-return b.stake*(b.odds-1)+b.stake*(placeOdds-1);
-}
-
-if(b.result==="Placed"){
-return b.stake*(placeOdds-1);
-}
-
-return -b.stake;
+  if(b.result==="Won"){
+    // both win and place parts
+    return stake*(odds-1) + stake*(placeOdds-1);
+  }
+  if(b.result==="Placed"){
+    return stake*(placeOdds-1);
+  }
+  // Lost
+  return -stake;
 }
 
 function stakeCount(b){
+  if(b.result==="Pending"||b.result==="Void") return 0;
+  return b.type==="ew" ? (Number(b.stake)||0)*2 : Number(b.stake)||0;
+}
 
-if(b.result==="Pending"||b.result==="Void") return 0;
+function addTransaction(t){
+  t.id = t.id || Date.now();
+  meta.transactions.push(t);
+  saveData();
+  render();
+}
 
-return b.type==="ew"
-?b.stake*2
-:b.stake;
+function formatDate(d){
+  return new Date(d).toISOString().slice(0,10);
 }
 
 function render(){
+  // summary metrics
+  let profit = 0; let staked = 0; let wins = 0; let settled = 0;
+  bets.forEach(b=>{ profit+=pnl(b); staked+=stakeCount(b); if(b.result!=="Pending"&&b.result!=="Void"){ settled++; if(b.result==="Won") wins++; }});
 
-let profit=0;
-let staked=0;
-let wins=0;
-let settled=0;
+  // include transactions and starting bankroll
+  let depositNet = meta.transactions.reduce((s,t)=>s + (t.type === 'deposit' ? Number(t.amount)||0 : -(Number(t.amount)||0)), 0);
+  let bankroll = (Number(meta.startingBankroll)||0) + depositNet + profit;
 
-bets.forEach(b=>{
-profit+=pnl(b);
-staked+=stakeCount(b);
+  $('bankroll').textContent = money(bankroll);
+  $('bankrollMeta').textContent = 'Start: '+money(meta.startingBankroll)+' • Deposits: '+money(depositNet);
 
-if(b.result!=="Pending"&&b.result!=="Void"){
-settled++;
-if(b.result==="Won") wins++;
-}
-});
+  $('profit').textContent = (profit>=0?'+':'-')+money(Math.abs(profit));
+  $('profit').className = 'value '+(profit>=0? 'green' : 'red');
+  $('profitMeta').textContent = 'Settled P/L from bets';
 
-$("bankroll").textContent=money(100+profit);
+  $('roi').textContent = (staked? (profit/staked*100).toFixed(1) : '0.0') + '%';
+  $('strike').textContent = (settled? (wins/settled*100).toFixed(1) : '0.0') + '%';
+  $('staked').textContent = money(staked);
+  $('wins').textContent = wins;
 
-$("profit").textContent=(profit>=0?"+":"-")+money(profit);
-$("profit").className="value "+(profit>=0?"green":"red");
-
-$("roi").textContent=(staked?profit/staked*100:0).toFixed(1)+"%";
-
-$("strike").textContent=(settled?wins/settled*100:0).toFixed(1)+"%";
-
-$("staked").textContent=money(staked);
-$("wins").textContent=wins;
-
-renderChart();
-renderHistory();
+  renderChart();
+  renderHistory();
+  renderMonthlyPL();
+  renderBreakdown();
+  renderStreaks();
 }
 
 function renderChart(){
-
-let svg=$("chart");
-
-let arr=bets
-.filter(b=>b.result!=="Pending"&&b.result!=="Void")
-.sort((a,b)=>a.date.localeCompare(b.date));
-
-if(!arr.length){
-svg.innerHTML='<text x="300" y="90" text-anchor="middle" fill="currentColor" opacity=".4">Settled bets appear here</text>';
-return;
+  let svg = $('chart');
+  let arr = bets.filter(b=>b.result!=="Pending"&&b.result!=="Void").slice().sort((a,b)=>a.date.localeCompare(b.date));
+  if(!arr.length){ svg.innerHTML = '<text x="300" y="90" text-anchor="middle" fill="currentColor" opacity=".4">Settled bets appear here</text>'; return; }
+  let value = 0; let values = arr.map(b=> value += pnl(b));
+  let min = Math.min(0, ...values); let max = Math.max(0, ...values); let range = max-min || 1;
+  let points = values.map((v,i)=>{ let x = 20 + (i/Math.max(1,values.length-1))*560; let y = 145 - ((v-min)/range)*120; return x+','+y; }).join(' ');
+  svg.innerHTML = '<line x1="20" y1="'+(145-((0-min)/range)*120)+'" x2="580" y2="'+(145-((0-min)/range)*120)+'" stroke="currentColor" opacity=".2"/>'+
+    '<polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
 }
 
-let value=0;
-let values=arr.map(b=>value+=pnl(b));
-
-let min=Math.min(0,...values);
-let max=Math.max(0,...values);
-let range=max-min||1;
-
-let points=values.map((v,i)=>{
-
-let x=20+(i/Math.max(1,values.length-1))*560;
-let y=145-((v-min)/range)*120;
-
-return x+","+y;
-
-}).join(" ");
-
-svg.innerHTML=
-'<line x1="20" y1="'+(145-((0-min)/range)*120)+'" x2="580" y2="'+(145-((0-min)/range)*120)+'" stroke="currentColor" opacity=".2"/>'+
-'<polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
-
-}
-
-function escapeText(s){
-
-return String(s).replace(/[&<>"']/g,c=>({
-"&":"&amp;",
-"<":"&lt;",
-">":"&gt;",
-'"':"&quot;",
-"'":"&#39;"
-}[c]));
-
-}
+function escapeText(s){ return String(s||'').replace(/[&<>"]+/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c)); }
 
 function renderHistory(){
+  let resultFilter = $('filterResult').value;
+  let marketFilter = $('filterMarket').value;
+  let q = ($('search').value||'').toLowerCase().trim();
 
-let resultFilter=$("filterResult").value;
-let marketFilter=$("filterMarket").value;
+  let arr = bets.filter(b=>
+    (resultFilter==='All' || b.result===resultFilter) &&
+    (marketFilter==='All' || b.market===marketFilter) &&
+    (q==='' || (b.player||'').toLowerCase().includes(q) || (b.tournament||'').toLowerCase().includes(q) || (b.market||'').toLowerCase().includes(q) || (b.notes||'').toLowerCase().includes(q))
+  );
 
-let arr=bets.filter(b=>
-(resultFilter==="All"||b.result===resultFilter)&&
-(marketFilter==="All"||b.market===marketFilter)
-);
+  $('list').innerHTML = '';
+  $('empty').style.display = arr.length? 'none' : 'block';
 
-$("list").innerHTML="";
-$("empty").style.display=arr.length?"none":"block";
+  arr.slice().reverse().forEach(b=>{
+    let profit = pnl(b);
+    let description = b.type==="ew" ? 'EW · £'+(Number(b.stake)||0).toFixed(2)+' each way · '+(b.fraction==.2?"1/5":b.fraction==.25?"1/4":b.fraction==.1?"1/10":(Number(b.fraction)||0)+'x')+' · '+(b.places||'')+' places' : 'Single · £'+(Number(b.stake)||0).toFixed(2);
 
-arr.slice().reverse().forEach(b=>{
+    let div = document.createElement('div');
+    div.className = 'bet';
+    div.tabIndex = 0;
+    div.innerHTML = '<div class="betrow">'+
+      '<div style="flex:1">'+
+      '<div class="player">'+escapeText(b.player)+'</div>'+
+      '<div class="meta">'+escapeText(b.tournament)+' · '+escapeText(b.market)+'</div>'+
+      '<div class="meta">'+b.date+' · '+description+' @ '+(Number(b.odds)||0).toFixed(2)+'</div>'+
+      (b.notes? '<div class="meta">Notes: '+escapeText(b.notes)+'</div>':'')+
+      '</div>'+
+      '<div style="text-align:right">'+
+      '<b class="'+(profit>=0? 'green':'red')+'">'+(b.result==='Pending'? '—' : (profit>=0?'+':'-')+money(Math.abs(profit)))+'</b>'+
+      '<div class="meta">'+escapeText(b.result)+'</div>'+
+      '</div>'+
+      '</div>'+
+      '<div class="actions">'+
+      '<button data-edit="'+b.id+'">Edit</button>'+
+      '<button data-delete="'+b.id+'">Delete</button>'+
+      '</div>';
 
-let profit=pnl(b);
-
-let description=b.type==="ew"
-?"EW · £"+b.stake.toFixed(2)+" each way · "+(b.fraction===.2?"1/5":b.fraction===.25?"1/4":"1/10")+" · "+b.places+" places"
-:"Single · £"+b.stake.toFixed(2);
-
-let div=document.createElement("div");
-
-div.className="bet";
-
-div.innerHTML=
-'<div class="betrow">'+
-'<div>'+
-'<div class="player">'+escapeText(b.player)+'</div>'+
-'<div class="meta">'+escapeText(b.tournament)+' · '+escapeText(b.market)+'</div>'+
-'<div class="meta">'+b.date+' · '+description+' @ '+b.odds.toFixed(2)+'</div>'+
-'</div>'+
-'<div>'+
-'<b class="'+(profit>=0?"green":"red")+'">'+
-(b.result==="Pending"?"—":(profit>=0?"+":"-")+money(profit))+
-'</b>'+
-'<div class="meta">'+escapeText(b.result)+'</div>'+
-'</div>'+
-'</div>'+
-'<div class="actions">'+
-'<button data-edit="'+b.id+'">Edit</button>'+
-'<button data-delete="'+b.id+'">Delete</button>'+
-'</div>';
-
-$("list").appendChild(div);
-
-});
-
+    $('list').appendChild(div);
+  });
 }
 
+function renderMonthlyPL(){
+  // group by YYYY-MM
+  let months = {};
+  bets.forEach(b=>{
+    if(b.result==='Pending' || b.result==='Void') return;
+    let key = (b.date||'').slice(0,7) || 'Unknown';
+    months[key] = (months[key]||0) + pnl(b);
+  });
+  let rows = Object.keys(months).sort().map(k=> k+': '+(months[k]>=0?'+':'-')+money(Math.abs(months[k])) ).join('\n');
+  $('monthlyPL').textContent = rows || 'No settled P/L yet.';
+}
+
+function renderBreakdown(){
+  let byTournament = {}; let byPlayer = {}; let byMarket = {};
+  bets.forEach(b=>{
+    if(b.result==='Pending' || b.result==='Void') return;
+    byTournament[b.tournament||'Unknown'] = (byTournament[b.tournament||'Unknown']||0) + pnl(b);
+    byPlayer[b.player||'Unknown'] = (byPlayer[b.player||'Unknown']||0) + pnl(b);
+    byMarket[b.market||'Unknown'] = (byMarket[b.market||'Unknown']||0) + pnl(b);
+  });
+  // show top 5 each
+  function top(obj){ return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]+': '+(x[1]>=0?'+':'-')+money(Math.abs(x[1]))).join('\n')||'—'; }
+  $('breakdown').textContent = 'Tournaments:\n'+top(byTournament)+'\n\nPlayers:\n'+top(byPlayer)+'\n\nMarkets:\n'+top(byMarket);
+}
+
+function renderStreaks(){
+  // compute current and longest winning/losing streaks
+  let seq = bets.slice().filter(b=>b.result!=='Pending'&&b.result!=='Void').sort((a,b)=>a.date.localeCompare(b.date));
+  let longestWin=0,longestLose=0, currWin=0,currLose=0, currType=null;
+  seq.forEach(b=>{
+    let win = b.result==='Won';
+    if(win){ currWin++; currLose=0; } else { currLose++; currWin=0; }
+    longestWin = Math.max(longestWin,currWin); longestLose = Math.max(longestLose,currLose);
+  });
+  // current streak (from last settled)
+  let current = '—';
+  for(let i=seq.length-1;i>=0;i--){ let b=seq[i]; if(!b)break; if(b.result==='Won'){ if(current.startsWith('Win')) current = (current==='—'?'Win 1':'Win '+( (current==='—')?1:1)); }
+    break; }
+  // Simpler current streak: count from last settled backwards
+  let csType=null, csCount=0;
+  for(let i=seq.length-1;i>=0;i--){ let b=seq[i]; if(!b) break; if(b.result==='Won'){ if(csType==='lose') break; csType='win'; csCount++; } else { if(csType==='win') break; csType='lose'; csCount++; } }
+  $('streakVal').textContent = csCount? (csType==='win'? 'Win '+csCount : 'Lose '+csCount) : '—';
+  $('streakMeta').textContent = 'Longest win: '+longestWin+' • Longest lose: '+longestLose;
+  $('longestStreaks').textContent = '';
+}
+
+// Form handling
 function syncType(){
-
-let ew=$("type").value==="ew";
-
-$("ewFields").classList.toggle("hidden",!ew);
-$("singleResult").style.display=ew?"none":"block";
-
-let stake=Number($("stake").value)||0;
-
-$("preview").textContent=ew
-?"Each Way: £"+stake.toFixed(2)+" win + £"+stake.toFixed(2)+" place = £"+(stake*2).toFixed(2)+" total"
-:"Single: £"+stake.toFixed(2)+" total";
-
+  let ew = $('type').value === 'ew';
+  $('ewFields').classList.toggle('hidden', !ew);
+  $('singleResult').style.display = ew ? 'none' : 'block';
 }
 
 function showPage(page){
-
-document.querySelectorAll("section").forEach(s=>{
-s.classList.toggle("hidden",s.id!==page);
-});
-
-document.querySelectorAll(".tab").forEach(b=>{
-b.classList.toggle("active",b.dataset.page===page);
-});
-
+  document.querySelectorAll('section').forEach(s=> s.classList.toggle('hidden', s.id!==page));
+  document.querySelectorAll('.tab').forEach(b=> b.classList.toggle('active', b.dataset.page===page));
 }
 
 function resetForm(){
-
-$("form").reset();
-$("editId").value="";
-$("formTitle").textContent="Add Golf Bet";
-$("save").textContent="Add Bet";
-$("cancel").style.display="none";
-
-let d=new Date();
-$("date").value=d.toISOString().slice(0,10);
-
-syncType();
-
+  $('form').reset(); $('editId').value=''; $('formTitle').textContent='Add Golf Bet'; $('save').textContent='Add Bet'; $('cancel').style.display='none';
+  $('date').value = new Date().toISOString().slice(0,10);
+  syncType();
 }
 
-$("date").value=new Date().toISOString().slice(0,10);
+$('date').value = new Date().toISOString().slice(0,10);
+document.querySelectorAll('.tab').forEach(b=> b.addEventListener('click', ()=> showPage(b.dataset.page)));
+$('type').addEventListener('change', syncType);
+$('stake').addEventListener('input', ()=>{});
+$('filterResult').addEventListener('change', renderHistory);
+$('filterMarket').addEventListener('change', renderHistory);
+$('search').addEventListener('input', renderHistory);
+$('cancel').addEventListener('click', resetForm);
 
-document.querySelectorAll(".tab").forEach(b=>{
-b.addEventListener("click",()=>showPage(b.dataset.page));
+$('form').addEventListener('submit', e=>{
+  e.preventDefault();
+  let odds = Number($('odds').value);
+  let stake = Number($('stake').value);
+  if(!Number.isFinite(odds)||odds<1.01||!Number.isFinite(stake)||stake<=0) return;
+  let type = $('type').value;
+  let id = Number($('editId').value) || Date.now();
+
+  let b = {
+    id:id,
+    date:$('date').value,
+    tournament:$('tournament').value.trim(),
+    player:$('player').value.trim(),
+    market:$('market').value,
+    type:type,
+    odds:odds,
+    stake:stake,
+    fraction: Number($('fraction').value),
+    places: Number($('places').value),
+    result: type==='ew' ? $('ewResult').value : $('result').value,
+    notes: $('notes').value.trim() || undefined
+  };
+
+  let index = bets.findIndex(x=>x.id===id);
+  if(index>=0){
+    // update existing but preserve unknown properties
+    bets[index] = Object.assign({}, bets[index], b);
+  }else{
+    bets.push(b);
+  }
+
+  saveData(); resetForm(); render(); showPage('history');
 });
 
-$("type").addEventListener("change",syncType);
-$("stake").addEventListener("input",syncType);
-
-$("filterResult").addEventListener("change",renderHistory);
-$("filterMarket").addEventListener("change",renderHistory);
-
-$("cancel").addEventListener("click",resetForm);
-
-$("form").addEventListener("submit",e=>{
-
-e.preventDefault();
-
-let odds=Number($("odds").value);
-let stake=Number($("stake").value);
-
-if(!Number.isFinite(odds)||odds<1.01||!Number.isFinite(stake)||stake<=0)return;
-
-let type=$("type").value;
-let id=Number($("editId").value)||Date.now();
-
-let b={
-id:id,
-date:$("date").value,
-tournament:$("tournament").value.trim(),
-player:$("player").value.trim(),
-market:$("market").value,
-type:type,
-odds:odds,
-stake:stake,
-fraction:Number($("fraction").value),
-places:Number($("places").value),
-result:type==="ew"?$("ewResult").value:$("result").value
-};
-
-let index=bets.findIndex(x=>x.id===id);
-
-if(index>=0){
-bets[index]=b;
-}else{
-bets.push(b);
-}
-
-saveData();
-resetForm();
-render();
-showPage("history");
-
+// Edit / delete from list
+$('list').addEventListener('click', e=>{
+  if(e.target.dataset.edit){
+    let b = bets.find(x=>x.id===Number(e.target.dataset.edit));
+    if(!b) return;
+    $('editId').value = b.id;
+    $('date').value = b.date;
+    $('tournament').value = b.tournament;
+    $('player').value = b.player;
+    $('market').value = b.market;
+    $('type').value = b.type;
+    $('odds').value = b.odds;
+    $('stake').value = b.stake;
+    $('fraction').value = b.fraction || 0.2;
+    $('places').value = b.places || 3;
+    if(b.type==='ew') { $('ewResult').value = b.result || 'Pending'; } else { $('result').value = b.result || 'Pending'; }
+    $('notes').value = b.notes || '';
+    $('formTitle').textContent = 'Edit Golf Bet';
+    $('save').textContent = 'Save Changes';
+    $('cancel').style.display = 'inline-block';
+    syncType(); showPage('add');
+  }
+  if(e.target.dataset.delete){
+    let id = Number(e.target.dataset.delete);
+    bets = bets.filter(x=>x.id!==id);
+    saveData(); render();
+  }
 });
 
-$("list").addEventListener("click",e=>{
-
-if(e.target.dataset.edit){
-
-let b=bets.find(x=>x.id===Number(e.target.dataset.edit));
-
-$("editId").value=b.id;
-$("date").value=b.date;
-$("tournament").value=b.tournament;
-$("player").value=b.player;
-$("market").value=b.market;
-$("type").value=b.type;
-$("odds").value=b.odds;
-$("stake").value=b.stake;
-$("fraction").value=b.fraction;
-$("places").value=b.places;
-
-if(b.type==="ew"){
-$("ewResult").value=b.result;
-}else{
-$("result").value=b.result;
+// Settings / Transactions / Export / Import
+function openModal(title, contentHTML){
+  $('modalTitle').textContent = title;
+  $('modalBody').innerHTML = contentHTML;
+  $('modal').classList.remove('hidden');
 }
+function closeModal(){ $('modal').classList.add('hidden'); }
+$('modalClose').addEventListener('click', closeModal);
 
-$("formTitle").textContent="Edit Golf Bet";
-$("save").textContent="Save Changes";
-$("cancel").style.display="block";
-
-syncType();
-showPage("add");
-
-}
-
-if(e.target.dataset.delete){
-
-bets=bets.filter(x=>x.id!==Number(e.target.dataset.delete));
-
-saveData();
-render();
-
-}
-
+$('settingsBtn').addEventListener('click', ()=>{
+  let body = '<div class="form-row"><label class="label">Starting Bankroll</label><input id="startBank" type="number" value="'+(meta.startingBankroll||100)+'"></div>'+
+    '<div style="margin-top:8px"><b>Transactions</b><div id="txList" class="meta" style="margin-top:6px"></div></div>'+
+    '<div style="margin-top:8px" class="grid"><div><label class="label">Amount</label><input id="txAmt" type="number"></div><div><label class="label">Type</label><select id="txType"><option value="deposit">Deposit</option><option value="withdrawal">Withdrawal</option></select></div></div>'+
+    '<div style="margin-top:8px"><label class="label">Date</label><input id="txDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>'+
+    '<div style="margin-top:8px"><label class="label">Description</label><input id="txDesc" placeholder="Salary, transfer, etc"></div>'+
+    '<div style="margin-top:8px" class="actions"><button id="addTx" class="primary">Add Transaction</button><button id="clearTx">Clear All</button></div>';
+  openModal('Settings', body);
+  // populate transaction list
+  function refreshTx(){
+    let el = $('txList'); if(!el) return;
+    if(meta.transactions.length===0) el.textContent='No transactions'; else el.innerHTML = meta.transactions.map(t=> t.date+' • '+t.type+' '+money(t.amount)+' • '+(t.desc||'')).join('<br>');
+  }
+  refreshTx();
+  document.getElementById('addTx').addEventListener('click', ()=>{
+    let amt = Number(document.getElementById('txAmt').value)||0; let type = document.getElementById('txType').value; let date = document.getElementById('txDate').value; let desc = document.getElementById('txDesc').value || '';
+    if(!amt) return alert('Enter an amount');
+    addTransaction({date:date, amount: Math.abs(amt), type:type, desc:desc});
+    refreshTx();
+  });
+  document.getElementById('clearTx').addEventListener('click', ()=>{
+    if(confirm('Clear all transactions?')){ meta.transactions = []; saveData(); refreshTx(); render(); }
+  });
+  document.getElementById('startBank').addEventListener('change', (e)=>{ meta.startingBankroll = Number(e.target.value)||0; saveData(); render(); });
 });
 
+$('exportBtn').addEventListener('click', ()=>{
+  // export bets and meta as JSON
+  let payload = {bets: bets, meta: meta, exportedAt: new Date().toISOString()};
+  let blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement('a'); a.href = url; a.download = 'golf-bets-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+$('importBtn').addEventListener('click', ()=>{
+  let body = '<div class="form-row"><label class="label">Paste backup JSON or choose a file to import</label><textarea id="importData" placeholder="Paste JSON here"></textarea></div>'+
+    '<div style="margin-top:8px" class="actions"><button class="primary" id="doImport">Import (merge)</button><button id="doImportReplace">Import (skip existing)</button></div>';
+  openModal('Import / Restore', body);
+  document.getElementById('doImport').addEventListener('click', ()=>{
+    let raw = document.getElementById('importData').value.trim(); if(!raw) return alert('Paste JSON or select file');
+    try{ let obj = JSON.parse(raw); doImport(obj, {replace:false}); } catch(err){ alert('Invalid JSON'); }
+  });
+  document.getElementById('doImportReplace').addEventListener('click', ()=>{
+    let raw = document.getElementById('importData').value.trim(); if(!raw) return alert('Paste JSON or select file');
+    try{ let obj = JSON.parse(raw); doImport(obj, {replace:false}); } catch(err){ alert('Invalid JSON'); }
+  });
+});
+
+function doImport(obj, opts){
+  // keep existing bets, do not overwrite
+  if(!obj) return alert('No data');
+  let added=0, skipped=0;
+  if(Array.isArray(obj.bets)){
+    obj.bets.forEach(b=>{
+      if(b && b.id && !bets.find(x=>x.id===b.id)) { bets.push(b); added++; } else skipped++;
+    });
+  }
+  if(obj.meta){ meta = Object.assign(meta, obj.meta); }
+  saveData(); render(); alert('Import complete. Added: '+added+' Skipped (existing): '+skipped);
+}
+
+// Initial render
 render();
-syncType();
+// expose for debugging
+window._gb = {bets, meta, saveData};
 
 </script>
 </main>
